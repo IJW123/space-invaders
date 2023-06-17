@@ -11,6 +11,7 @@ fn main() {
         }),
         ..Default::default()
     }))
+    .add_startup_system(setup_system)
     .run();
 }
   
