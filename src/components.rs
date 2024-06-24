@@ -8,3 +8,6 @@ pub struct Velocity {
 
 #[derive(Component)]
 pub struct Player;
+
+#[derive(Component)]
+pub struct Laser;
