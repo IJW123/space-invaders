@@ -1,15 +1,9 @@
 use crate::{
-    components::{Laser, Player, Velocity},
-    GameTextures, WinSize, PLAYER_SIZE, SCREEN_SIZE_Y, SPRITE_SCALE,
+    components::{Movable, Player, Velocity},
+    GameTextures, WinSize, PLAYER_SIZE, SPRITE_SCALE,
 };
 use bevy::prelude::*;
 
-const TIME_STEP: f32 = 1. / 60.;
-const BASE_SPEED: f32 = 500.;
-const PLAYER_MIN_X: f32 = -450. + (PLAYER_SIZE.0 / 2.);
-const PLAYER_MAX_X: f32 = 450. - (PLAYER_SIZE.0 / 2.);
-const PLAYER_MIN_Y: f32 = -600. + (PLAYER_SIZE.1 / 2.);
-const PLAYER_MAX_Y: f32 = 600. - (PLAYER_SIZE.1 / 2.);
 const LASER_VELOCITY_X: f32 = 0.;
 const LASER_VELOCITY_Y: f32 = 0.2;
 
@@ -18,10 +12,8 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PostStartup, player_spawn_system)
-            .add_systems(Update, player_movement_system)
             .add_systems(Update, player_keyboard_event_system)
-            .add_systems(Update, player_fire_system)
-            .add_systems(Update, laser_movement_system);
+            .add_systems(Update, player_fire_system);
     }
 }
 
@@ -40,6 +32,9 @@ fn player_spawn_system(
                 ..Default::default()
             },
             ..Default::default()
+        })
+        .insert(Movable {
+            auto_despawn: false,
         })
         .insert(Name::new("player"))
         .insert(Player)
@@ -66,7 +61,7 @@ fn player_fire_system(
                     },
                     ..Default::default()
                 },
-                Laser,
+                Movable { auto_despawn: true },
                 Velocity {
                     x: LASER_VELOCITY_X,
                     y: LASER_VELOCITY_Y,
@@ -96,28 +91,5 @@ fn player_keyboard_event_system(
         } else {
             0.
         };
-    }
-}
-
-fn player_movement_system(mut query: Query<(&Velocity, &mut Transform), With<Player>>) {
-    for (velocity, mut transform) in query.iter_mut() {
-        transform.translation.x += velocity.x * BASE_SPEED * TIME_STEP;
-        transform.translation.y += velocity.y * BASE_SPEED * TIME_STEP;
-        transform.translation.x = transform.translation.x.clamp(PLAYER_MIN_X, PLAYER_MAX_X);
-        transform.translation.y = transform.translation.y.clamp(PLAYER_MIN_Y, PLAYER_MAX_Y);
-    }
-}
-
-fn laser_movement_system(
-    mut query: Query<(Entity, &Velocity, &mut Transform), With<Laser>>,
-    mut commands: Commands,
-) {
-    for (entity, velocity, mut transform) in query.iter_mut() {
-        transform.translation.x += velocity.x * BASE_SPEED * TIME_STEP;
-        transform.translation.y += velocity.y * BASE_SPEED * TIME_STEP;
-
-        if transform.translation.y > SCREEN_SIZE_Y / 2. {
-            commands.entity(entity).despawn();
-        }
     }
 }

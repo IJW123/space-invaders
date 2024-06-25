@@ -10,4 +10,6 @@ pub struct Velocity {
 pub struct Player;
 
 #[derive(Component)]
-pub struct Laser;
+pub struct Movable {
+    pub auto_despawn: bool,
+}
